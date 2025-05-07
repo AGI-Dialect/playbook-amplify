@@ -3,10 +3,10 @@ name: Deploy Next.js to AWS Amplify
 on:
   push:
     branches:
-      - main  # Change this if you use a different production branch
+      - main
   pull_request:
     branches:
-      - main  # For preview deployments
+      - main
 
 jobs:
   deploy:
@@ -17,7 +17,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
-      AMPLIFY_BRANCH: main  # Change this if you use a different branch name
+      AMPLIFY_BRANCH: main
 
     steps:
       - name: Checkout code
@@ -61,20 +61,33 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Check AWS CLI version
-        run: aws --version
+      - name: Install Amplify CLI
+        run: npm install -g @aws-amplify/cli
 
-      - name: Create deployment package
+      - name: Deploy to Amplify
         run: |
-          # Create a ZIP file with only the necessary files for Amplify
-          zip -r deploy.zip .next/ public/ package.json pnpm-lock.yaml next.config.js
-
-      - name: Deploy to AWS Amplify
-        run: |
-          aws amplify start-job \
-            --app-id $AMPLIFY_APP_ID \
-            --branch-name $AMPLIFY_BRANCH \
-            --job-type RELEASE \
-            --job-reason "GitHub Actions deployment" \
-            --commit-id ${{ github.sha }} \
-            --commit-message "${{ github.event.head_commit.message }}"
+          # Create amplify.yml file for deployment
+          cat > amplify.yml << EOF
+          version: 1
+          frontend:
+            phases:
+              preBuild:
+                commands:
+                  - npm install -g pnpm
+                  - pnpm install
+              build:
+                commands:
+                  - pnpm run build
+            artifacts:
+              baseDirectory: .next
+              files:
+                - '**/*'
+            cache:
+              paths:
+                - node_modules/**/*
+                - .next/cache/**/*
+          EOF
+          
+          # Deploy directly using the Amplify CLI
+          echo "Y" | amplify publish
+          
