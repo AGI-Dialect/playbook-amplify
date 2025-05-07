@@ -52,16 +52,18 @@ jobs:
       - name: Build frontend
         run: pnpm run build
 
-      # Skip the backend deployment since the repository
-      # doesn't have the required Amplify Gen 2 backend structure
-
-      # Instead, just generate outputs from existing deployed backend
       - name: Install Amplify backend CLI
         run: pnpm add -D @aws-amplify/backend-cli
 
-      - name: Generate client outputs from existing backend
+      - name: Deploy backend
         run: |
-          pnpm exec ampx generate outputs --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
+          export CI=1
+          pnpm exec ampx pipeline-deploy --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
+          if [ ${{ github.ref_name }} = "main" ]; then curl -X POST -d {} "https://webhooks.amplify.us-east-2.amazonaws.com/prod/webhooks?id=9e7c72ab-bd92-467f-9f25-dc21bd4cc3dd&token=FSYlVyf18zziKhDBWPG5d8b3Iy8rNNPt5FuknEuDqvo&operation=startbuild" -H "Content-Type:application/json"; fi
+
+#      - name: Generate client outputs
+#        run: |
+#          pnpm exec ampx generate outputs --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
 
 #      # Optional: This step only needed if you've set up webhooks for frontend deployment
 #      - name: Trigger frontend build (if using separate frontend app)
