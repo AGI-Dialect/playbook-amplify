@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 This is a Next.js project bootstrapped with `create-next-app`. It uses:
+
 - Next.js 15.3.2 with App Router
 - React 19
 - TypeScript
@@ -24,11 +25,15 @@ pnpm start
 
 # Run linting
 pnpm lint
+
+# Format all files with Prettier
+pnpm format
 ```
 
 ## Project Structure
 
 - `app/` - Contains the Next.js application using the App Router
+
   - `layout.tsx` - Root layout component that includes global styles and fonts
   - `page.tsx` - Main page component
   - `globals.css` - Global CSS styles
