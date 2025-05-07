@@ -1,4 +1,4 @@
-name: Deploy Next.js to AWS Amplify
+name: Deploy Next.js to AWS Amplify via Webhook
 
 on:
   push:
@@ -9,92 +9,10 @@ on:
       - main
 
 jobs:
-  deploy:
+  trigger_deploy:
     runs-on: ubuntu-latest
 
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
-      AMPLIFY_BRANCH: main
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          run_install: false
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
+      - name: Trigger Amplify webhook
         run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build Next.js app
-        run: pnpm run build
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Create deployment zip
-        run: |
-          # Create a zip file with the build artifacts
-          zip -r deploy.zip .next/ public/ package.json pnpm-lock.yaml next.config.js
-
-      - name: Trigger Amplify build
-        run: |
-          # Get the current timestamp
-          TIMESTAMP=$(date +%s)
-          
-          # Create a build specification file
-          cat > build-spec.yml << EOF
-          version: 1
-          frontend:
-            phases:
-              preBuild:
-                commands:
-                  - npm install -g pnpm
-                  - pnpm install
-              build:
-                commands:
-                  - pnpm run build
-            artifacts:
-              baseDirectory: .next
-              files:
-                - '**/*'
-            cache:
-              paths:
-                - node_modules/**/*
-                - .next/cache/**/*
-          EOF
-          
-          # Trigger a manual build in Amplify
-          aws amplify start-build \
-            --app-id $AMPLIFY_APP_ID \
-            --branch-name $AMPLIFY_BRANCH \
-            --source-url https://github.com/${{ github.repository }}/archive/${{ github.sha }}.zip
+          curl -X POST -d {} "https://webhooks.amplify.us-east-2.amazonaws.com/prod/webhooks?id=9e7c72ab-bd92-467f-9f25-dc21bd4cc3dd&token=FSYlVyf18zziKhDBWPG5d8b3Iy8rNNPt5FuknEuDqvo&operation=startbuild" -H "Content-Type:application/json"
