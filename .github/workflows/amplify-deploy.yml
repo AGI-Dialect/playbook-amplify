@@ -53,16 +53,16 @@ jobs:
         run: pnpm run build
 
       - name: Install Amplify backend CLI
-        run: pnpm install -g @aws-amplify/backend-cli
+        run: pnpm add -D @aws-amplify/backend-cli
 
       - name: Deploy backend
         run: |
           export CI=1
-          npx ampx pipeline-deploy --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
+          pnpm exec ampx pipeline-deploy --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
 
       - name: Generate client outputs
         run: |
-          npx ampx generate outputs --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
+          pnpm exec ampx generate outputs --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
 
 #      # Optional: This step only needed if you've set up webhooks for frontend deployment
 #      - name: Trigger frontend build (if using separate frontend app)
