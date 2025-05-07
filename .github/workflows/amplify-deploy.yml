@@ -47,13 +47,13 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Build frontend
         run: pnpm run build
 
       - name: Install Amplify backend CLI
-        run: pnpm add -g @aws-amplify/backend-cli
+        run: pnpm install -g @aws-amplify/backend-cli
 
       - name: Deploy backend
         run: |
