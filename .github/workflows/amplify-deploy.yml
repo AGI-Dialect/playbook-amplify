@@ -52,15 +52,14 @@ jobs:
       - name: Build frontend
         run: pnpm run build
 
+      # Skip the backend deployment since the repository
+      # doesn't have the required Amplify Gen 2 backend structure
+
+      # Instead, just generate outputs from existing deployed backend
       - name: Install Amplify backend CLI
         run: pnpm add -D @aws-amplify/backend-cli
 
-      - name: Deploy backend
-        run: |
-          export CI=1
-          pnpm exec ampx pipeline-deploy --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
-
-      - name: Generate client outputs
+      - name: Generate client outputs from existing backend
         run: |
           pnpm exec ampx generate outputs --branch ${{ github.ref_name }} --app-id ${{ secrets.AMPLIFY_APP_ID }}
 
