@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\""
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "typecheck": "tsc --noEmit",
+    "code-qa": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm build"
   },
   "dependencies": {
     "eslint-plugin-react-hooks": "^5.2.0",
