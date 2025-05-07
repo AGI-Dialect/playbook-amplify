@@ -61,13 +61,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Install Amplify CLI
-        run: npm install -g @aws-amplify/cli
-
-      - name: Deploy to Amplify
+      - name: Create deployment zip
         run: |
-          # Create amplify.yml file for deployment
-          cat > amplify.yml << EOF
+          # Create a zip file with the build artifacts
+          zip -r deploy.zip .next/ public/ package.json pnpm-lock.yaml next.config.js
+
+      - name: Trigger Amplify build
+        run: |
+          # Get the current timestamp
+          TIMESTAMP=$(date +%s)
+          
+          # Create a build specification file
+          cat > build-spec.yml << EOF
           version: 1
           frontend:
             phases:
@@ -88,6 +93,8 @@ jobs:
                 - .next/cache/**/*
           EOF
           
-          # Deploy directly using the Amplify CLI
-          echo "Y" | amplify publish
-          
+          # Trigger a manual build in Amplify
+          aws amplify start-build \
+            --app-id $AMPLIFY_APP_ID \
+            --branch-name $AMPLIFY_BRANCH \
+            --source-url https://github.com/${{ github.repository }}/archive/${{ github.sha }}.zip
