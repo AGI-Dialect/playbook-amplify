@@ -6,6 +6,7 @@ frontend:
         - npm install -g pnpm
         - pnpm install
         - pnpm exec playwright install
+        - pnpm exec playwright install --with-deps
     build:
       commands:
         - pnpm run qa:app
